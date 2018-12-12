@@ -1,7 +1,7 @@
 const Influx = require('influx');
 const os = require('os');
 const si = require('systeminformation');
-
+const http = require('http');
 
 const influx = new Influx.InfluxDB({
     host: 'localhost',
@@ -22,6 +22,15 @@ const influx = new Influx.InfluxDB({
                 free: Influx.FieldType.INTEGER,
                 used: Influx.FieldType.INTEGER,
                 percentage: Influx.FieldType.FLOAT
+            },
+            tags: [
+                'host'
+            ]
+        },
+        {
+            measurement: 'bots_running',
+            fields: {
+                total: Influx.FieldType.INTEGER
             },
             tags: [
                 'host'
@@ -74,4 +83,43 @@ setInterval(function () {
             console.error(`Error saving data to InfluxDB! ${err.stack}`)
         });
     });
+    var options = {
+        host: '192.168.1.220',
+        prot: 80,
+        path: '/api/bot/list',
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            Authorization: 'Basic aitXNDFPcFhjSHY4SW45dnQvUTJ4K1VtVVBzTzVicEFnMFZtWmtGZmp0MGJxa3dwaUs4MTQyUVVXR1k='
+        }
+    }
+    var x = http.request(options, function (res) {
+        var body = '';
+        res.on('data', function (data) {
+            body += data;
+        });
+        res.on('end', function () {
+            var parsed = JSON.parse(body);
+            var total = parsed.length;
+
+            influx.writePoints([{
+                measurement: 'bots_running',
+                tags: {
+                    host: os.hostname()
+                },
+                fields: {
+                    total: total
+                },
+            }]).catch(err => {
+                console.error(`Error saving data to InfluxDB! ${err.stack}`)
+            });
+
+        });
+    });
+    x.end();
+
 }, 1000);
+
+// j+W41OpXcHv8In9vt/Q2x+UmUPs=:ts3ab:O5bpAg0VmZkFfjt0bqkwpiK8142QUWGY
+// j+W41OpXcHv8In9vt/Q2x+UmUPsO5bpAg0VmZkFfjt0bqkwpiK8142QUWGY
+// aitXNDFPcFhjSHY4SW45dnQvUTJ4K1VtVVBzTzVicEFnMFZtWmtGZmp0MGJxa3dwaUs4MTQyUVVXR1k=
