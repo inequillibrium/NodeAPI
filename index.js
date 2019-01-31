@@ -83,7 +83,7 @@ setInterval(function () {
             console.error(`Error saving data to InfluxDB! ${err.stack}`)
         });
     });
-    var options = {
+    /*var options = {
         host: '192.168.1.220',
         prot: 80,
         path: '/api/bot/list',
@@ -116,7 +116,7 @@ setInterval(function () {
 
         });
     });
-    x.end();
+    x.end();*/
 
 }, 1000);
 
